@@ -1,5 +1,12 @@
 # clip2md
 
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Tests](https://github.com/affigeny/clip2md/actions/workflows/tests.yml/badge.svg)](https://github.com/affigeny/clip2md/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/affigeny/clip2md?color=success)](https://github.com/affigeny/clip2md/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-13%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![No dependencies](https://img.shields.io/badge/dependencies-none-lightgrey)](clip2md.py)
+
 Сохраняет выделенный или скопированный текст в Markdown-файл одним нажатием клавиш на macOS. Имя файла — дата и время: `вт.21.08.2026 13.22.md`.
 
 Работает через Apple Shortcuts, поэтому доступно из любого приложения: Safari, Notes, Mail, Telegram, PDF-читалки. Без зависимостей — только стандартная библиотека Python 3, который в macOS уже есть.
@@ -113,7 +120,7 @@ python3 "$HOME/bin/clip2md.py"
 
 ## Если не работает
 
-**`Run Shell Script finished with an error`** без подробностей. Уведомление Shortcuts не показывает причину. Поставьте в действие диагностическую версию и посмотрите лог:
+**`Run Shell Script finished with an error`** без подробностей. Уведомление Shortcuts не показывает причину. Направьте вывод в лог и посмотрите, что там:
 
 ```zsh
 python3 "$HOME/bin/clip2md.py" >> "$HOME/clip2md.log" 2>&1
@@ -160,4 +167,4 @@ python3 -m unittest discover -v
 
 ## Лицензия
 
-MIT
+MIT — см. [LICENSE](LICENSE).

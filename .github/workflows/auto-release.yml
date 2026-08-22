@@ -1,0 +1,29 @@
+name: Auto Release on Commit
+
+# Каждый push в main поднимает patch-версию тега и создаёт релиз
+# с автоматическим changelog из сообщений коммитов.
+#
+# Как поднять minor/major вместо patch — добавить в сообщение коммита метку:
+#   [minor]  →  v1.2.3 → v1.3.0
+#   [major]  →  v1.2.3 → v2.0.0
+# Пропустить релиз для коммита: [norelease]
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Версия действия закреплена вместо @master: master может измениться
+      # без предупреждения и сломать релизы во всех репозиториях сразу.
+      - uses: rymndhng/release-on-push-action@v0.28.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          bump_version_scheme: patch
+          use_github_release_notes: true
