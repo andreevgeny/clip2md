@@ -1,8 +1,8 @@
 # clip2md
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![Tests](https://github.com/affigeny/clip2md/actions/workflows/tests.yml/badge.svg)](https://github.com/affigeny/clip2md/actions/workflows/tests.yml)
-[![Release](https://img.shields.io/github/v/release/affigeny/clip2md?color=success)](https://github.com/affigeny/clip2md/releases)
+[![Tests](https://github.com/andreevgeny/clip2md/actions/workflows/tests.yml/badge.svg)](https://github.com/andreevgeny/clip2md/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/affigeny/clip2md?color=success)](https://github.com/andreevgeny/clip2md/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-13%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![No dependencies](https://img.shields.io/badge/dependencies-none-lightgrey)](clip2md.py)
@@ -66,7 +66,7 @@ NAME: \M-^Aб.22.08.2026 21.03
 ## Установка
 
 ```bash
-git clone https://github.com/affigeny/clip2md.git
+git clone https://github.com/andreevgeny/clip2md.git
 cd clip2md
 mkdir -p ~/bin && cp clip2md.py ~/bin/ && chmod +x ~/bin/clip2md.py
 ```
