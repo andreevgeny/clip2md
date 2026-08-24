@@ -118,6 +118,28 @@ _TIME_LOCALES = ("ru_RU.UTF-8", "ru_RU")
 #: его как «/», поэтому между часами и минутами точка.
 _STAMP_FORMAT = "%a.%d.%m.%Y %H.%M"
 
+#: Максимум слов из заголовка/начала заметки для суффикса имени.
+_SLUG_MAX_WORDS = 3
+#: Максимальная длина суффикса (символов).
+_SLUG_MAX_CHARS = 40
+#: Разделитель между таймстампом и суффиксом в имени файла.
+_SLUG_SEP = " — "
+
+#: Пунктуация, обрезаемая по краям слова перед сравнением со стоп-словами.
+STRIP_PUNCT = ".,;:!?—–-()\"'«»"
+
+#: Стоп-слова: союзы, предлоги, частицы и вводные. Они не несут смысла,
+#: поэтому в имени файла выглядят как шум («Заголовок и» вместо «Заголовок»).
+_STOP_WORDS = frozenset({
+    "и", "а", "но", "да", "или", "либо", "то", "же", "бы", "ли", "не", "ни",
+    "в", "во", "на", "по", "о", "об", "от", "до", "за", "из", "под", "над",
+    "у", "к", "ко", "с", "со", "при", "про", "для", "без", "через", "между",
+    "это", "этот", "эта", "эти", "тот", "та", "те", "как", "что", "чтобы",
+    "который", "которая", "которые", "всё", "все", "весь", "вся", "мой",
+    "свой", "его", "её", "их", "наш", "ваш", "the", "a", "an", "of", "in",
+    "on", "to", "for", "and", "or", "is", "are", "was", "were", "be",
+})
+
 
 class HTMLToMarkdown(HTMLParser):
     """Потоковый конвертер HTML в Markdown на стандартной библиотеке.
@@ -287,6 +309,76 @@ def from_clipboard():
     return ""
 
 
+def title_slug(text):
+    """Выделить 2–3 слова из сути текста для суффикса имени файла.
+
+    Порядок поиска кандидата:
+    1. Первый заголовок Markdown (``#`` … ``######``) — авторы почти всегда
+       называют заметку в нём.
+    2. Первая содержательная строка: не URL, не список, не цитата-пустышка.
+    Для HTML-заметок заголовком становится ``<h1>``/``<h2>``, потому что
+    конвертер оставляет их с ``#`` в начале строки.
+
+    Из кандидата выбрасывается разметка и «стоп-слова» — союзы, предлоги,
+    вводные («и», «в», «это», «как»…). Без фильтра имя получалось бы вида
+    «Архитектура моделей в» — предлог на конце ничего не говорит о сути.
+
+    Args:
+        text: Markdown-текст заметки.
+
+    Returns:
+        Короткая строка-суффикс или пустая строка, если взять нечего.
+
+    Пример:
+        >>> title_slug("# Архитектура моделей в Hermes Agent")
+        'Архитектура моделей Hermes'
+    """
+    if not text or not text.strip():
+        return ""
+
+    candidate = ""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if re.match(r"#{1,6}\s+\S", stripped):
+            # lstrip съедает и все шесть решёток, и случай «#Тег» без пробела.
+            candidate = stripped.lstrip("#").strip()
+            break
+        # Пропускаем строки без слов: URL, картинки, разделители "---".
+        if re.search(r"[А-Яа-яЁёA-Za-z]{2,}", stripped) \
+                and not stripped.startswith(("http://", "https://", "![", "|")):
+            # Маркеры списка и цитаты имени не украшают: «- пункт» -> «пункт».
+            candidate = stripped.lstrip("-*•> ").strip()
+            break
+
+    if not candidate:
+        return ""
+
+    # Убрать остатки разметки: ссылки, инлайн-теги (сырой HTML), выделения.
+    plain = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", candidate)
+    plain = re.sub(r"</?[A-Za-z][^>]*>", " ", plain)
+    plain = re.sub(r"[*_`~>#]+", " ", plain)
+    plain = re.sub(r'[\\/:*?"<>|]', " ", plain)   # запреты файловой системы
+    plain = html.unescape(plain)
+
+    words = []
+    for word in plain.split():
+        if len(words) == _SLUG_MAX_WORDS:
+            break
+        if word.lower().strip(STRIP_PUNCT) in _STOP_WORDS:
+            continue
+        # Пустое слово даёт одиночный маркер («-») после обрезки пунктуации.
+        trimmed = word.strip(STRIP_PUNCT)
+        if not trimmed:
+            continue
+        words.append(trimmed)
+        if sum(len(w) + 1 for w in words) > _SLUG_MAX_CHARS:
+            words.pop()
+            break
+
+    slug = " ".join(words).strip(" .,;:!?)(")
+    return slug
+
+
 def stamp(moment=None):
     """Собрать метку времени для имени файла: «сб.22.08.2026 21.17».
 
@@ -342,6 +434,11 @@ def resolve_vault(explicit=None):
 def save_note(text, directory=None, moment=None):
     """Записать текст в новый Markdown-файл и вернуть путь к нему.
 
+    Имя файла — «вт.21.08.2026 13.22» плюс, если получилось выделить,
+    2–3 слова сути: «вт.21.08.2026 13.22 — Архитектура моделей.md».
+    Суффикс ищется по заголовку или первой содержательной строке
+    (:func:`title_slug`); не нашёлся — имя остаётся прежним.
+
     Args:
         text: готовый Markdown.
         directory: папка заметок; создаётся, если её нет.
@@ -351,15 +448,22 @@ def save_note(text, directory=None, moment=None):
         Абсолютный путь созданного файла.
     """
     now = stamp(moment)
-    if not text.strip():
-        text = "[Пустая заметка {}]".format(now)
 
     target = resolve_vault(directory)
     os.makedirs(target, exist_ok=True)
-    path = os.path.join(target, "{}.md".format(now))
+
+    name = now
+    slug = title_slug(text)
+    if slug:
+        name = _SLUG_SEP.join((now, slug))
+    path = os.path.join(target, "{}.md".format(name))
     with open(path, "w", encoding="utf-8") as handle:
         # rstrip плюс явный перевод строки: ровно один \n в конце файла.
         handle.write(text.rstrip() + "\n")
+        if not text.strip():
+            # Плейсхолдер пишется после вычисления имени: иначе скобки и
+            # таймстамп внутри него уезжали бы в имя файла.
+            handle.write("[Пустая заметка {}]\n".format(now))
     return path
 
 
