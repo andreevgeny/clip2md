@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Tests](https://github.com/andreevgeny/clip2md/actions/workflows/tests.yml/badge.svg)](https://github.com/andreevgeny/clip2md/actions/workflows/tests.yml)
-[![Release](https://img.shields.io/github/v/release/affigeny/clip2md?color=success)](https://github.com/andreevgeny/clip2md/releases)
+[![Release](https://img.shields.io/github/v/release/andreevgeny/clip2md?color=success)](https://github.com/andreevgeny/clip2md/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-13%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![No dependencies](https://img.shields.io/badge/dependencies-none-lightgrey)](clip2md.py)
